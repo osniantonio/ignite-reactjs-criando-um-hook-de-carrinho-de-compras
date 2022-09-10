@@ -6,41 +6,38 @@ import {
 
 import { useCart } from "../../hooks/useCart";
 import { formatPrice } from "../../util/format";
+import { Product } from "../@interfaces";
 import { Container, ProductTable, Total } from "./styles";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  image: string;
-  amount: number;
-}
+import { toast } from "react-toastify";
 
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart();
 
+  const productAmount = (product: Product) =>
+    product.amount ? product.amount : 0;
+
   const cartFormatted = cart.map((product) => ({
     ...product,
     priceFormatted: formatPrice(product.price),
-    priceTotal: formatPrice(product.price * product.amount),
+    priceTotal: formatPrice(product.price * productAmount(product)),
   }));
 
   const total = formatPrice(
     cart.reduce((sumTotal, product) => {
-      return (sumTotal += product.price * product.amount);
+      return (sumTotal += product.price * productAmount(product));
     }, 0)
   );
 
   function handleProductIncrement(product: Product) {
     updateProductAmount({
-      amount: product.amount + 1,
+      amount: productAmount(product) + 1,
       productId: product.id,
     });
   }
 
   function handleProductDecrement(product: Product) {
     updateProductAmount({
-      amount: product.amount - 1,
+      amount: productAmount(product) - 1,
       productId: product.id,
     });
   }
@@ -76,7 +73,7 @@ const Cart = (): JSX.Element => {
                   <button
                     type="button"
                     data-testid="decrement-product"
-                    disabled={product.amount <= 1}
+                    disabled={productAmount(product) <= 1}
                     onClick={() => handleProductDecrement(product)}
                   >
                     <MdRemoveCircleOutline size={20} />
@@ -85,7 +82,7 @@ const Cart = (): JSX.Element => {
                     type="text"
                     data-testid="product-amount"
                     readOnly
-                    value={product.amount}
+                    value={productAmount(product)}
                   />
                   <button
                     type="button"
@@ -110,11 +107,23 @@ const Cart = (): JSX.Element => {
               </td>
             </tr>
           ))}
+          {cartFormatted.length === 0 && (
+            <tr data-testid="product">
+              <td colSpan={5}>O seu carrinho de compras está vazio!</td>
+            </tr>
+          )}
         </tbody>
       </ProductTable>
 
       <footer>
-        <button type="button">Finalizar pedido</button>
+        <button
+          type="button"
+          onClick={() =>
+            toast.info("Funcionalidade não implementada no desafio!")
+          }
+        >
+          Finalizar pedido
+        </button>
 
         <Total>
           <span>TOTAL</span>
